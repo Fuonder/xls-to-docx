@@ -197,7 +197,7 @@ class MainWindow(QMainWindow):
         if get_file_extension(self.input1.text()) == 0:
             if Path(self.input1.text()).exists():
                 self.label_jif.setHidden(False)
-                saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
+                saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
                 #self.label_jif.setHidden(False)
                 if saveFile[0] != "":
                     # self.progress
@@ -260,7 +260,7 @@ class MainWindow(QMainWindow):
         if get_file_extension(self.input2.text()) == 0:
             if Path(self.input2.text()).exists():
                 self.label_jif2.setHidden(False)
-                saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
+                saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
                 if saveFile[0] != "":
                     start_time = time.time()
                     while int(time.time() - start_time) <= 600:
