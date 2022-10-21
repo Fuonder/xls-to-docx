@@ -51,6 +51,10 @@ class Excel:
         wb = openpyxl.load_workbook(excel_path)
         sheet_name = (wb.get_sheet_names())
         sheet = wb.get_sheet_by_name(sheet_name[0])
+        print(sheet_name[0])
+        if sheet_name[0] != 'Scens':
+            return 1
+
 
         # B - Наименование оборудования
         # D - опасное вещество
@@ -133,6 +137,8 @@ class Excel:
 
         doc.save(word_path)
         print("--- %s seconds ---" % (time.time() - start_time))
+        return 0
+
 
         # pos = excel_path.find('.xls')
         # print("I AM HERE")

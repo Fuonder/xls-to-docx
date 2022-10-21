@@ -1,3 +1,5 @@
+import time
+
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QGridLayout, QMessageBox
 from PyQt6.QtWidgets import (
     QApplication,
@@ -77,11 +79,11 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Выгрузка отчета риска")
 
-        self.button = QPushButton("Загрузить файл типа 1")
+        self.button = QPushButton("Загрузить файл типа 'Scens'")
         self.button.clicked.connect(self.the_button_was_clicked)
         self.button.adjustSize()
 
-        self.button1 = QPushButton("Загрузить файл типа 2")
+        self.button1 = QPushButton("Загрузить файл типа 'Зоны'")
         self.button1.clicked.connect(self.the_button_was_clicked_second)
         self.button1.adjustSize()
 
@@ -105,6 +107,20 @@ class MainWindow(QMainWindow):
         self.input2.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
 
         self.label1 = QLabel("")
+        self.label_jif = QLabel()
+        self.movie = QMovie("Spinner-1s-25px.gif")
+        self.label_jif.setMovie(self.movie)
+        self.movie.start()
+        self.label_jif.setHidden(True)
+
+        self.label_jif2 = QLabel()
+        self.movie2 = QMovie("Spinner-1s-25px.gif")
+        self.label_jif2.setMovie(self.movie2)
+        self.movie2.start()
+        self.label_jif2.setHidden(True)
+        #self.label_jif.setFixedSize(100, 100)
+
+
 
 
         layout = QGridLayout()
@@ -120,7 +136,13 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.button3, 1, 2)
 
         #layout.addWidget(self.label1, 1, 0)
-        layout.addWidget(self.label1, 2, 0)
+
+        #layout.addWidget(self.label1, 0, 0)
+        layout.addWidget(self.label_jif, 0, 3)
+        layout.addWidget(self.label_jif2, 1, 3)
+
+        layout.setRowStretch(2, 1)
+
 
         # layout.addWidget(self.progress, 2, 0, 2, 3)
 
@@ -171,29 +193,45 @@ class MainWindow(QMainWindow):
         # file.write("1111")
         # file.close()
     def btn2_was_clicked(self):
+
         if get_file_extension(self.input1.text()) == 0:
             if Path(self.input1.text()).exists():
-
+                self.label_jif.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
+                #self.label_jif.setHidden(False)
                 if saveFile[0] != "":
                     # self.progress
 
 
                     #print("save = " + str(saveFile[0]))
                     input_data = self.input1.text()
-                    Excel = Excel_redactor.Excel()
-                    Excel.edit_excel(input_data, saveFile[0])
-                    self.input1.clear()
+                    #self.label_jif.setHidden(False)
+                    time.sleep(10)
+                    #self.movie.start()
 
-                    msg = QMessageBox()
-                    msg.setWindowTitle("Готово!")
-                    msg.setText("Word файл успешно создан")
-                    msg.setIcon(QMessageBox.Icon.Information)
-                    a = msg.exec()
+                    Excel = Excel_redactor.Excel()
+                    check = 0
+                    check = Excel.edit_excel(input_data, saveFile[0])
+                    self.input1.clear()
+                    self.label_jif.setHidden(True)
+                    if check == 1:
+                        msg = QMessageBox()
+                        msg.setWindowTitle("Ошибка")
+                        msg.setText("Структура выбраного файла не соответсвует структуре 'Scens'.")
+                        msg.setIcon(QMessageBox.Icon.Critical)
+                        a = msg.exec()
+                    #self.movie.stop()
+                    else:
+                        msg = QMessageBox()
+                        msg.setWindowTitle("Готово!")
+                        msg.setText("Word файл успешно создан")
+                        msg.setIcon(QMessageBox.Icon.Information)
+                        a = msg.exec()
 
 
                 else:
                     print("no file selected")
+                    self.label_jif.setHidden(True)
                 #do smf with file
                 # print("INPUT")
                 # print(self.input1)
@@ -221,16 +259,26 @@ class MainWindow(QMainWindow):
     def btn3_was_clicked(self):
         if get_file_extension(self.input2.text()) == 0:
             if Path(self.input2.text()).exists():
-
+                self.label_jif2.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
                 if saveFile[0] != "":
-                    saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
+                    start_time = time.time()
+                    while int(time.time() - start_time) <= 600:
+                        print(time.time() - start_time)
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Ошибка")
+                    msg.setText("Что-то пошло не так")
+                    msg.setIcon(QMessageBox.Icon.Critical)
+                    a = msg.exec()
+
+                    self.label_jif2.setHidden(True)
                     file = open(saveFile[0], 'w')
                     # file.write("1111")
                     file.close()
                     self.input2.clear()
 
                 else:
+                    self.label_jif2.setHidden(True)
                     print("no file selected")
             else:
                 msg = QMessageBox()
