@@ -29,9 +29,15 @@ from openpyxl.utils import get_column_letter
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from decimal import Decimal
+from PyQt6.QtCore import QThread, pyqtSignal
 
+class Excel(QThread):
+    _signal = pyqtSignal(int)
+    def __init__(self):
+        super(Excel, self).__init__()
 
-class Excel:
+    def __del__(self):
+        self.wait()
 
     def another_e(self, chislo):
         power = int(str(chislo)[-2] + str(chislo)[-1])
@@ -112,7 +118,17 @@ class Excel:
         style.font.size = Pt(10)
 
         j = 0
+        step = all_rows / 100
+        percent = 1
+        #self._signal.emit(percent)
         for row in range(2, all_rows-2):
+            # print(row)
+            # print("%%%%%%%%%%%% -- " + str(percent))
+            # print(complete_percent_value)
+            if row % step < 1.0 and row % step >= 0.0:
+                #percent+=percent
+                percent += 1
+                self._signal.emit(percent)
             list = dict[j]
             j = j + 1
             row = doc_table[0].add_row().cells  # олучаем все ячейки ряда

@@ -95,6 +95,9 @@ class MainWindow(QMainWindow):
         self.button3.clicked.connect(self.btn3_was_clicked)
         self.button3.adjustSize()
 
+        self.progressbar = QProgressBar()
+        self.progressbar.setValue(0)
+
         # self.progress = QProgressBar()
         # self.progress.setRange(0, 100)
 
@@ -106,18 +109,21 @@ class MainWindow(QMainWindow):
         self.input2 = QLineEdit("")
         self.input2.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
 
-        self.label1 = QLabel("")
-        self.label_jif = QLabel()
-        self.movie = QMovie("Spinner-1s-25px.gif")
-        self.label_jif.setMovie(self.movie)
-        self.movie.start()
-        self.label_jif.setHidden(True)
+        # self.label1 = QLabel("")
+        # self.label_jif = QLabel()
+        # self.movie = QMovie("Spinner-1s-25px.gif")
+        # self.label_jif.setMovie(self.movie)
+        # self.movie.start()
+        # self.label_jif.setHidden(True)
 
-        self.label_jif2 = QLabel()
-        self.movie2 = QMovie("Spinner-1s-25px.gif")
-        self.label_jif2.setMovie(self.movie2)
-        self.movie2.start()
-        self.label_jif2.setHidden(True)
+        # self.label_jif2 = QLabel()
+        # self.movie2 = QMovie("Spinner-1s-25px.gif")
+        # self.label_jif2.setMovie(self.movie2)
+        # self.movie2.start()
+        # self.label_jif2.setHidden(True)
+
+
+
         #self.label_jif.setFixedSize(100, 100)
 
 
@@ -138,8 +144,11 @@ class MainWindow(QMainWindow):
         #layout.addWidget(self.label1, 1, 0)
 
         #layout.addWidget(self.label1, 0, 0)
-        layout.addWidget(self.label_jif, 0, 3)
-        layout.addWidget(self.label_jif2, 1, 3)
+        # layout.addWidget(self.label_jif, 0, 3)
+        # layout.addWidget(self.label_jif2, 1, 3)
+
+        layout.addWidget(self.progressbar, 2, 0, 2, 3)
+        self.progressbar.setHidden(True)
 
         layout.setRowStretch(2, 1)
 
@@ -193,10 +202,14 @@ class MainWindow(QMainWindow):
         # file.write("1111")
         # file.close()
     def btn2_was_clicked(self):
-
+        self.thread = Excel_redactor.Excel()
+        self.thread._signal.connect(self.signal_accept)
+        self.thread.start()
+        self.button2.setEnabled(False)
         if get_file_extension(self.input1.text()) == 0:
             if Path(self.input1.text()).exists():
-                self.label_jif.setHidden(False)
+                # self.label_jif.setHidden(False)
+                self.progressbar.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
                 #self.label_jif.setHidden(False)
                 if saveFile[0] != "":
@@ -206,14 +219,14 @@ class MainWindow(QMainWindow):
                     #print("save = " + str(saveFile[0]))
                     input_data = self.input1.text()
                     #self.label_jif.setHidden(False)
-                    time.sleep(10)
+
                     #self.movie.start()
 
-                    Excel = Excel_redactor.Excel()
+
                     check = 0
-                    check = Excel.edit_excel(input_data, saveFile[0])
+                    check = self.thread.edit_excel(input_data, saveFile[0])
                     self.input1.clear()
-                    self.label_jif.setHidden(True)
+                    # self.label_jif.setHidden(True)
                     if check == 1:
                         msg = QMessageBox()
                         msg.setWindowTitle("Ошибка")
@@ -227,11 +240,15 @@ class MainWindow(QMainWindow):
                         msg.setText("Word файл успешно создан")
                         msg.setIcon(QMessageBox.Icon.Information)
                         a = msg.exec()
+                        self.progressbar.setValue(0)
+                        self.button2.setEnabled(True)
+                        self.progressbar.setHidden(True)
+
 
 
                 else:
                     print("no file selected")
-                    self.label_jif.setHidden(True)
+                    # self.label_jif.setHidden(True)
                 #do smf with file
                 # print("INPUT")
                 # print(self.input1)
@@ -259,7 +276,7 @@ class MainWindow(QMainWindow):
     def btn3_was_clicked(self):
         if get_file_extension(self.input2.text()) == 0:
             if Path(self.input2.text()).exists():
-                self.label_jif2.setHidden(False)
+                # self.label_jif2.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
                 if saveFile[0] != "":
                     start_time = time.time()
@@ -271,14 +288,14 @@ class MainWindow(QMainWindow):
                     msg.setIcon(QMessageBox.Icon.Critical)
                     a = msg.exec()
 
-                    self.label_jif2.setHidden(True)
+                    # self.label_jif2.setHidden(True)
                     file = open(saveFile[0], 'w')
                     # file.write("1111")
                     file.close()
                     self.input2.clear()
 
                 else:
-                    self.label_jif2.setHidden(True)
+                    # self.label_jif2.setHidden(True)
                     print("no file selected")
             else:
                 msg = QMessageBox()
@@ -301,7 +318,15 @@ class MainWindow(QMainWindow):
         # # file.write("1111")
         # file.close()
         # self.input2.clear()
+    def signal_accept(self, msg):
+        if int(msg) > 100:
+            self.progressbar.setValue(100)
+        else:
+            self.progressbar.setValue(int(msg))
 
+        if self.progressbar.value() == 100:
+            # self.progressbar.setValue(0)
+            self.button2.setEnabled(True)
 
 
 
@@ -312,4 +337,4 @@ window = MainWindow()
 window.show()
 # Excel = Excel_redactor.Excel()
 # Excel.edit_excel('C:/Users/fmoro/Desktop/Scens_1_метео 14.06.2022.xlsx')
-app.exec()
+sys.exit(app.exec())
