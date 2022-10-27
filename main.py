@@ -1,6 +1,7 @@
+import os.path
 import time
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QGridLayout, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QGridLayout, QMessageBox, QFontDialog
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -34,18 +35,6 @@ from random import choice
 
 import Excel_redactor
 
-window_titles = [
-    'My App',
-    'My App',
-    'Still My App',
-    'Still My App',
-    'What on earth',
-    'What on earth',
-    'This is surprising',
-    'This is surprising',
-    'Something went wrong'
-]
-
 def get_file_extension(fullpath):
     if fullpath == "":
         print("No file selected")
@@ -73,10 +62,33 @@ class MainWindow(QMainWindow):
     def __init__(self):
 
         super().__init__()
+        self.setupUi()
+        self.file_name  = ""
+        self.file_name2 = ""
+        self.times_clk_btn = 0
+
+
+
+    def setupUi(self):
 
         self.resize(800, 150)
-        self.n_times_clicked = 0
 
+        #print(QFontDialog.getFont())
+
+        self.text_bar1 = QLabel()
+        # self.text_bar1.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        #self.text_bar1.adjustSize()
+        self.text_bar1.setHidden(True)
+
+        self.text_bar2 = QLabel()
+        # self.text_bar2.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        #self.text_bar2.adjustSize()
+        self.text_bar2.setHidden(True)
+
+        # self.cancel_btn_1 = QPushButton("Отмена")
+        # self.cancel_btn_1.adjustSize()
+
+        self.setWindowIcon(QIcon("Graphicloads-Filetype-Excel-xls.ico"))
         self.setWindowTitle("Выгрузка отчета риска")
 
         self.button = QPushButton("Загрузить файл типа 'Scens'")
@@ -97,67 +109,49 @@ class MainWindow(QMainWindow):
 
         self.progressbar = QProgressBar()
         self.progressbar.setValue(0)
+        self.progressbar.adjustSize()
 
-        # self.progress = QProgressBar()
-        # self.progress.setRange(0, 100)
-
-
-
+        self.progressbar2 = QProgressBar()
+        self.progressbar2.setValue(0)
+        self.progressbar2.adjustSize()
 
         self.input1 = QLineEdit("")
         self.input1.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
         self.input2 = QLineEdit("")
         self.input2.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
 
-        # self.label1 = QLabel("")
-        # self.label_jif = QLabel()
-        # self.movie = QMovie("Spinner-1s-25px.gif")
-        # self.label_jif.setMovie(self.movie)
-        # self.movie.start()
-        # self.label_jif.setHidden(True)
-
-        # self.label_jif2 = QLabel()
-        # self.movie2 = QMovie("Spinner-1s-25px.gif")
-        # self.label_jif2.setMovie(self.movie2)
-        # self.movie2.start()
-        # self.label_jif2.setHidden(True)
-
-
-
-        #self.label_jif.setFixedSize(100, 100)
-
-
-
-
         layout = QGridLayout()
 
         layout.addWidget(self.button, 0, 0)
         layout.addWidget(self.input1, 0, 1)
         layout.addWidget(self.button2, 0, 2)
+        layout.addWidget(self.text_bar1, 2, 0)
+        # layout.addWidget(self.cancel_btn_1, 2, 2)
         # layout.addWidget(self.label1, 0, 2)
         # layout.addWidget(self.label1, 0, 3)
 
         layout.addWidget(self.button1, 1, 0)
         layout.addWidget(self.input2, 1, 1)
         layout.addWidget(self.button3, 1, 2)
-
+        layout.addWidget(self.text_bar2, 3, 0)
         #layout.addWidget(self.label1, 1, 0)
 
         #layout.addWidget(self.label1, 0, 0)
         # layout.addWidget(self.label_jif, 0, 3)
         # layout.addWidget(self.label_jif2, 1, 3)
 
-        layout.addWidget(self.progressbar, 2, 0, 2, 3)
+        layout.addWidget(self.progressbar, 2, 1, 1, 2)
         self.progressbar.setHidden(True)
+        layout.addWidget(self.progressbar2, 3, 1, 1, 2)
+        self.progressbar2.setHidden(True)
 
-        layout.setRowStretch(2, 1)
 
-
-        # layout.addWidget(self.progress, 2, 0, 2, 3)
+        layout.setRowStretch(4, 1)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+
 
     def the_button_was_clicked_second(self):
         print("Clicked. second")
@@ -202,62 +196,69 @@ class MainWindow(QMainWindow):
         # file.write("1111")
         # file.close()
     def btn2_was_clicked(self):
-        self.thread = Excel_redactor.Excel()
-        self.thread._signal.connect(self.signal_accept)
-        self.thread.start()
-        self.button2.setEnabled(False)
+        self.times_clk_btn += 1
+        if self.times_clk_btn == 1:
+            msg = QMessageBox()
+            msg.setWindowTitle("Внимание!")
+            msg.setText("Для корректной работы программы, необходимо,"
+                        " чтобы выбранный файл для word отчета был закрыт, если вы хотите его перезаписать.")
+            msg.setIcon(QMessageBox.Icon.Information)
+            a = msg.exec()
         if get_file_extension(self.input1.text()) == 0:
             if Path(self.input1.text()).exists():
-                # self.label_jif.setHidden(False)
-                self.progressbar.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
-                #self.label_jif.setHidden(False)
-                if saveFile[0] != "":
-                    # self.progress
+                file_name = os.path.basename(Path(saveFile[0]))
+                print(file_name)
+                self.file_name = os.path.basename(Path(saveFile[0]))
+                btn_text = "Запись в файл " + self.file_name + ": "
+                if self.file_name == self.file_name2:
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Ошибка")
+                    msg.setText("Вы выбрали имя файла, которое уже находится в обработке")
+                    msg.setIcon(QMessageBox.Icon.Critical)
+                    a = msg.exec()
+                else:
+                    if saveFile[0] != "":
+                        self.text_bar1.setHidden(False)
+                        self.text_bar1.setText(btn_text)
+                        self.text_bar1.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                        # self.text_bar1.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                        # self.text_bar1.setFont(QFont('Segoe UI', 10))
+                        #self.text_bar1.setFixedSize(18)
+                        self.button.setEnabled(False)
+                        self.button2.setEnabled(False)
+                        self.progressbar.setHidden(False)
+                        # self.progressbar.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+                        input_data = self.input1.text()
 
+                        self.thread = QThread()
 
-                    #print("save = " + str(saveFile[0]))
-                    input_data = self.input1.text()
-                    #self.label_jif.setHidden(False)
+                        self.worker = Excel_redactor.Worker_Excel(input_data, saveFile[0])
 
-                    #self.movie.start()
+                        self.worker.moveToThread(self.thread)
 
+                        self.thread.started.connect(self.worker.run)
+                        #self.cancel_btn_1.clicked.connect(self.worker.terminate)
 
-                    check = 0
-                    check = self.thread.edit_excel(input_data, saveFile[0])
-                    self.input1.clear()
-                    # self.label_jif.setHidden(True)
-                    if check == 1:
-                        msg = QMessageBox()
-                        msg.setWindowTitle("Ошибка")
-                        msg.setText("Структура выбраного файла не соответсвует структуре 'Scens'.")
-                        msg.setIcon(QMessageBox.Icon.Critical)
-                        a = msg.exec()
-                    #self.movie.stop()
+                        self.worker._signal.connect(self.signal_accept)
+
+                        self.worker.error.connect(self.error_signal)
+
+                        self.worker.finished.connect(self.thread_complete)
+
+                        self.worker.finished.connect(self.thread.quit)
+                        self.worker.finished.connect(self.worker.deleteLater)
+                        self.thread.finished.connect(self.thread.deleteLater)
+
+                        print("STARTING THREAD")
+                        self.thread.start()
                     else:
+                        print("no file selected")
                         msg = QMessageBox()
-                        msg.setWindowTitle("Готово!")
-                        msg.setText("Word файл успешно создан")
+                        msg.setWindowTitle("Выберите файл!")
+                        msg.setText("Вы не выбрали название и расположение word-файла")
                         msg.setIcon(QMessageBox.Icon.Information)
                         a = msg.exec()
-                        self.progressbar.setValue(0)
-                        self.button2.setEnabled(True)
-                        self.progressbar.setHidden(True)
-
-
-
-                else:
-                    print("no file selected")
-                    # self.label_jif.setHidden(True)
-                #do smf with file
-                # print("INPUT")
-                # print(self.input1)
-                # print(self.input1.text())
-                # input_data = self.input1.text()
-                #
-                # Excel = Excel_redactor.Excel()
-                # Excel.edit_excel(input_data)
-                # self.input1.clear()
             else:
                 msg = QMessageBox()
                 msg.setWindowTitle("Ошибка")
@@ -274,29 +275,65 @@ class MainWindow(QMainWindow):
 
 
     def btn3_was_clicked(self):
+        self.times_clk_btn += 1
+        if self.times_clk_btn == 1:
+            msg = QMessageBox()
+            msg.setWindowTitle("Внимание!")
+            msg.setText("Для корректной работы программы, необходимо,"
+                        " чтобы выбранный файл для word отчета был закрыт, если вы хотите его перезаписать.")
+            msg.setIcon(QMessageBox.Icon.Information)
+            a = msg.exec()
         if get_file_extension(self.input2.text()) == 0:
             if Path(self.input2.text()).exists():
-                # self.label_jif2.setHidden(False)
                 saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx", "Word файл (*.docx)")
-                if saveFile[0] != "":
-                    start_time = time.time()
-                    while int(time.time() - start_time) <= 600:
-                        print(time.time() - start_time)
+                file_name = os.path.basename(Path(saveFile[0]))
+                print(file_name)
+                self.file_name2 =os.path.basename(Path(saveFile[0]))
+                btn_text = "Запись в файл " + self.file_name2  + ": "
+                if self.file_name2 == self.file_name:
                     msg = QMessageBox()
                     msg.setWindowTitle("Ошибка")
-                    msg.setText("Что-то пошло не так")
+                    msg.setText("Вы выбрали имя файла, которое уже находится в обработке")
                     msg.setIcon(QMessageBox.Icon.Critical)
                     a = msg.exec()
-
-                    # self.label_jif2.setHidden(True)
-                    file = open(saveFile[0], 'w')
-                    # file.write("1111")
-                    file.close()
-                    self.input2.clear()
-
                 else:
-                    # self.label_jif2.setHidden(True)
-                    print("no file selected")
+                    if saveFile[0] != "":
+                        self.text_bar2.setHidden(False)
+                        self.text_bar2.setText(btn_text)
+                        self.text_bar2.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+                        self.button1.setEnabled(False)
+                        self.button3.setEnabled(False)
+                        self.progressbar2.setHidden(False)
+                        input_data = self.input2.text()
+
+                        self.thread2 = QThread()
+
+                        self.worker2 = Excel_redactor.Worker_Excel_RPR(input_data, saveFile[0]) # change func -> new class .
+
+                        self.worker2.moveToThread(self.thread2)
+
+                        self.thread2.started.connect(self.worker2.run)
+
+                        self.worker2._signal.connect(self.signal_accept_zone)
+
+                        self.worker2.error.connect(self.error_signal_zone)
+
+                        self.worker2.finished.connect(self.thread_complete_zone)
+
+                        self.worker2.finished.connect(self.thread2.quit)
+                        self.worker2.finished.connect(self.worker2.deleteLater)
+                        self.thread2.finished.connect(self.thread2.deleteLater)
+
+                        print("STARTING THREAD")
+                        self.thread2.start()
+                    else:
+                        print("no file selected")
+                        msg = QMessageBox()
+                        msg.setWindowTitle("Выберите файл!")
+                        msg.setText("Вы не выбрали название и расположение word-файла")
+                        msg.setIcon(QMessageBox.Icon.Information)
+                        a = msg.exec()
             else:
                 msg = QMessageBox()
                 msg.setWindowTitle("Ошибка")
@@ -311,30 +348,112 @@ class MainWindow(QMainWindow):
             a = msg.exec()
             self.input2.clear()
 
-        # print()
-        # saveFile = QFileDialog.getSaveFileName(self, 'Save File', "Новый отчет.docx")
-        # print("save = " + str(saveFile[0]))
-        # file = open(saveFile[0], 'w')
-        # # file.write("1111")
-        # file.close()
+        # msg = QMessageBox()
+        # msg.setWindowTitle("Ой!")
+        # msg.setText("С выгрузкой файлов типа 'Зоны' все еще есть проблемы. Данная кнопка временно отключена.")
+        # msg.setIcon(QMessageBox.Icon.Information)
+        # a = msg.exec()
         # self.input2.clear()
+
+
     def signal_accept(self, msg):
         if int(msg) > 100:
             self.progressbar.setValue(100)
         else:
             self.progressbar.setValue(int(msg))
 
-        if self.progressbar.value() == 100:
-            # self.progressbar.setValue(0)
+
+    def signal_accept_zone(self, msg):
+
+        if int(msg) > 100:
+            self.progressbar2.setValue(100)
+        else:
+            self.progressbar2.setValue(int(msg))
+
+
+    def thread_complete(self, x):
+        if x == 0:
+            msg = QMessageBox()
+            msg.setWindowTitle("Готово!")
+            text = "Word файл " + self.file_name +  " успешно создан"
+            msg.setText(text)
+            msg.setIcon(QMessageBox.Icon.Information)
+            a = msg.exec()
+            self.progressbar.setValue(0)
+            # self.button2.setEnabled(True)
+        else:
+            self.progressbar.setValue(0)
+
+        self.text_bar1.clear()
+        self.text_bar1.setHidden(True)
+        self.input1.clear()
+        self.progressbar.setHidden(True)
+
+        self.button.setEnabled(True)
+        self.button2.setEnabled(True)
+        self.file_name = ""
+
+
+    def thread_complete_zone(self, x):
+        if x == 0:
+            msg = QMessageBox()
+            msg.setWindowTitle("Готово!")
+            text = "Word файл " + self.file_name2 + " успешно создан"
+            msg.setText(text)
+            msg.setIcon(QMessageBox.Icon.Information)
+            a = msg.exec()
+            self.progressbar2.setValue(0)
+            # self.button2.setEnabled(True)
+        else:
+            self.progressbar2.setValue(0)
+
+        self.input2.clear()
+        self.progressbar2.setHidden(True)
+        self.text_bar2.clear()
+        self.text_bar2.setHidden(True)
+
+        self.button1.setEnabled(True)
+        self.button3.setEnabled(True)
+        self.file_name2 = ""
+
+    def error_signal(self, y):
+        if y == 1:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Структура выбраного файла не соответсвует структуре 'Scens'.")
+            msg.setIcon(QMessageBox.Icon.Critical)
+            a = msg.exec()
+            self.button.setEnabled(True)
             self.button2.setEnabled(True)
+            self.file_name = ""
+    def error_signal_zone(self, y):
+        if y == 2:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Структура выбраного файла не соответсвует структуре 'Зоны'.")
+            msg.setIcon(QMessageBox.Icon.Critical)
+            a = msg.exec()
+            self.button1.setEnabled(True)
+            self.button3.setEnabled(True)
+            self.file_name2 = ""
+
+
+
+
 
 
 
 app = QApplication(sys.argv)
 print("i am here111")
 window = MainWindow()
-#window.init()
 window.show()
+#window.init()
+# worker = Excel_redactor.Excel()
+# worker._signal.connect(window.signal_accept)
+# worker.start()
+
+
+
 # Excel = Excel_redactor.Excel()
 # Excel.edit_excel('C:/Users/fmoro/Desktop/Scens_1_метео 14.06.2022.xlsx')
 sys.exit(app.exec())
