@@ -357,18 +357,27 @@ class MainWindow(QMainWindow):
 
 
     def signal_accept(self, msg):
-        if int(msg) > 100:
+        #print(self.progressbar.value())
+        cur_value = self.progressbar.value()
+        cur_value += int(msg)
+        if cur_value > 100:
             self.progressbar.setValue(100)
         else:
-            self.progressbar.setValue(int(msg))
+            self.progressbar.setValue(cur_value)
 
 
     def signal_accept_zone(self, msg):
 
-        if int(msg) > 100:
+        cur_value = self.progressbar2.value()
+        print("CUR = " + str(cur_value))
+        print(msg)
+        cur_value += int(msg)
+        print("CUR + MSG = " + str(cur_value))
+        if cur_value > 100:
+            print("ZALYPA")
             self.progressbar2.setValue(100)
         else:
-            self.progressbar2.setValue(int(msg))
+            self.progressbar2.setValue(cur_value)
 
 
     def thread_complete(self, x):
