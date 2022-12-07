@@ -70,6 +70,8 @@ def change_state_with_old(r_otv, n_gas, old_state):
             r_otv = float(r_otv)
             d_otv = math.sqrt((r_otv * 4) / math.pi) * 1000
             round_num = round(d_otv * 2) / 2
+            if round_num == 12.0 or round_num == 13.0:
+                round_num = 12.5
             if str(round_num)[-1] == "0":
                 res = str(round_num)
                 pos = res.find(".0")
@@ -90,9 +92,30 @@ def change_state_with_old(r_otv, n_gas, old_state):
 
     return new_state
 
+
+def remove_exponent(value):
+    if 'e' in value.lower():
+        if '+' in value:
+            decial = value.split('e')
+            ret_val = format(((float(decial[0]))*(10**int(decial[1]))), '.0f')
+            return round(float(ret_val))
+        if '-' in value:
+            decial = value.split('e')
+            ret_val = format(((float(decial[0]))*(10**int(decial[1]))), '.16f')
+            return ret_val
+    else:
+        return value
+
+
 def another_e(chislo):
     power = int(str(chislo)[-2]+str(chislo)[-1])
-    value_new = float(str(chislo * pow(10, power))[:-2])
+    try:
+        value_new = float(remove_exponent(str(chislo * pow(10, power))))
+    except Exception as e:
+        print(str(e))
+        #print(remove_exponent(str(chislo * pow(10, power))))
+        #time.sleep(1000)
+
     answer = str(round(value_new, 2))
     p = get_super(str(10))
     answer = answer + ' × 10' + p
@@ -134,9 +157,7 @@ def filtery(sort_dict, obor, ov, pdo, max_1,max_2):
     rez = [x for x in rez if x != []]
     # print('1111')
     # print(rez)
-    for i in range (len(rez)):
-        rez[i].pop(3)
-        rez[i].pop(2)
+
 
     # print(rez)
     # print('1111')
@@ -157,11 +178,16 @@ def filtery_for_3_scens(sort_dict, obor, ov, ishod,  pdo):
                             a.append(sort_dict[i])
                         if i == len(sort_dict)-1:
                             for j in range(len(a)):
-                                 sum_chast = sum_chast + a[j][4]
+                                sum_chast = sum_chast + a[j][4]
                             if sum_chast != 0:
                                 a[j][4] = sum_chast
                                 rez.append(a[j])
+                #("LOOP p - OK")
+            #print("LOOP ish - OK")
+        #print("LOOP v - OK")
+    #print("LOOP o - OK")
     rez = [x for x in rez if x != []]
+    #print("res - OK")
     return rez
 
 def filtery_for_3(sort_dict, obor, ov, pdo, max_1,max_2,max_3):
@@ -200,15 +226,13 @@ def filtery_for_3(sort_dict, obor, ov, pdo, max_1,max_2,max_3):
                                 c.append(b[j])
                         for j in range(len(c)):
                             if c[j][max_3] is None or c[j][max_3] == 'None': c[j][max_3] = 0
-                            if c[j][max_3] > max_dr_dr:
+                            if c[j][max_3] >= max_dr_dr:
                                 max_str = (c[j])
                                 max_dr_dr = c[j][max_2]
                         if max_str is not []:
                             rez.append(max_str)
     rez = [x for x in rez if x != []]
-    for i in range (len(rez)):
-        rez[i].pop(3)
-        rez[i].pop(2)
+
     return rez
 
 def filtery_for_1(sort_dict, obor, ov, pdo, max_1):
@@ -233,9 +257,7 @@ def filtery_for_1(sort_dict, obor, ov, pdo, max_1):
                         if max_str is not []:
                             rez.append(max_str)
     rez = [x for x in rez if x != []]
-    for i in range (len(rez)):
-        rez[i].pop(3)
-        rez[i].pop(2)
+
     return rez
 
 def filtery_for_vert_li_fakel(sort_dict, obor, ov, pdo, max_1):
@@ -286,14 +308,36 @@ def chistka_vert_fakel(dict):
 
 def combine_all_docx(filename_master, files_list, file_name):
     number_of_sections=len(files_list)
+    #print("1 step - ok")
+    #time.sleep(10)
     master = Document(filename_master)
+    #print("2 step - ok")
+    #time.sleep(10)
     composer = Composer(master)
+    #print("3 step - ok")
+    #time.sleep(10)
     for i in range(0, number_of_sections):
+
         doc_temp = Document(files_list[i])
-        composer.append(doc_temp)
+        #print("NEXT APPEND")
+        try:
+            composer.append(doc_temp)
+        except Exception as e:
+            print(str(e))
+            time.sleep(1000)
+
+
+    #print("4 step - ok")
+    #time.sleep(10)
     composer.save(file_name)
+    #print("5 step - ok")
+    #time.sleep(10)
 
     doc = Document(file_name)
+
+    #print("6 step - ok")
+    #time.sleep(10)
+
     n_record = 1
 
     for y in range(len(doc.paragraphs)):
@@ -303,22 +347,30 @@ def combine_all_docx(filename_master, files_list, file_name):
         # if y % 2 == 0:
             doc.paragraphs[y].text = "Таблица " + str(n_record) + ". " + doc.paragraphs[y].text
             n_record = n_record + 1
+    #print("7 step - ok")
+    #time.sleep(10)
     doc.save(file_name)
+    #print("8 step - ok")
+    #time.sleep(10)
 
 def start_combine(file_name):
     folder = os.listdir('output')
-    print(folder)
+    #print(folder)
     file_master = "output/" + folder[0]
-    print(file_master)
+    #print(file_master)
     files = []
     if len(folder) == 1:
         shutil.copyfile(file_master, file_name)
     if len(folder) == 2:
         files.append("output/" + folder[1])
+        #print("COMBINE START1")
+        #time.sleep(10)
         combine_all_docx(file_master, files, file_name)
     if len(folder) > 2:
         for x in range(len(folder) - 1):
             files.append("output/" + folder[x + 1])
+        #print("COMBINE START2")
+        #time.sleep(10)
         combine_all_docx(file_master, files, file_name)
 
 class Worker_Excel(QObject):
@@ -367,7 +419,8 @@ class Worker_Excel(QObject):
             pdo = []
             ishod = []
 
-            for i in range(3, all_rows):
+            for i in range(3, all_rows+1):
+                #print("STEP : " + str(i))
                 stroka = []
                 obor = str(sheet['B' + str(i)].value).strip()  # Оборудование
                 if not (obor in oborudovanie): oborudovanie.append(obor)
@@ -390,8 +443,10 @@ class Worker_Excel(QObject):
                         q = 0
                         stroka.append(q)
                     else:
-                        q = (math.sqrt(float(q) * 4 / float(math.pi)) * 1000)
-                        # print(q)
+                        q = float(math.sqrt(float(q) * 4 / float(math.pi)) * 1000)
+                        q = round(q * 2) / 2
+
+                        #print(q)
                         if int(q) == 12 or int(q) == 13:
                             q = 12.5
                             stroka.append(q)
@@ -409,15 +464,23 @@ class Worker_Excel(QObject):
 
                 dict.append(stroka)
 
+
             # print(dict) # [Оборудование[0], ОВ[1], Исход[2], ПДО[3], Частота сценария!![4], Масса Гф, Масса ЖФ]
 
-            dict.sort(key=lambda row: (row[1] or 0, row[2] or 0, row[3] or 0, row[0] or 0))
-            print('1')
+            #dict.sort(key=lambda row: (row[1] or 0, row[2] or 0, row[3] or 0, row[0] or 0))
             rez = filtery_for_3_scens(dict, oborudovanie, ov, ishod, pdo)
+
+            rez.sort(key=lambda row: (row[0] or 0, row[1] or 0, row[2] or 0, row[3] or 0))
+
+
             # print(rez)
 
             for p in (range(len(rez))):
-                rez[p][4] = another_e(rez[p][4])
+                try:
+                    rez[p][4] = another_e(rez[p][4])
+                except Exception as e:
+                    print(str(e))
+                    #time.sleep(1000)
 
             # print(rez)
 
@@ -448,7 +511,7 @@ class Worker_Excel(QObject):
                     paragraph.style = doc.styles['Normal']
                     if col == 3:
                         if (list[col]) == 0:
-                            list[col] = 'Полное разрущение'
+                            list[col] = 'Полное разрушение'
                         else:
                             list[col] = str(list[col]).replace('.', ',')
                     if col == 4: list[col] = str(list[col]).replace('.', ',')
@@ -585,6 +648,7 @@ class Worker_Excel_RPR(QObject):
         print(sheet_name)
 
         percent = 100 / len(sheet_name)
+        var = 'unknown'
 
 
         dir = os.getcwd() + "/output"
@@ -602,12 +666,14 @@ class Worker_Excel_RPR(QObject):
                 print("RPR")
         if var != 'OPO' and var != 'RPR':
             wb.close()
-            #print("WRONG STRUCT")
+            print("WRONG STRUCT")
             self.error.emit(2)
+            time.sleep(2)
             self.finished.emit(-1)
             return 1
 
         count_done_list = 0
+        #var = "RPR"
 
         for i in range(len(sheet_name)):
             print("3")
@@ -637,7 +703,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -655,9 +721,10 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
+                    stroka.append(sheet['G' + str(j)].value)  # Площадь пролива
                     stroka.append(sheet['I' + str(j)].value)  # Масса
                     stroka.append(sheet['K' + str(j)].value)  # Радиус 1
                     stroka.append(sheet['L' + str(j)].value)  # Радиус 10
@@ -668,12 +735,19 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(sheet['Q' + str(j)].value)  # Радиус 100
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
 
                 # print(dict)
                 rez = filtery(dict, oborudovanie, ov, pdo, 6, 5)
 
-                count_stolb = 10
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
+
+
+                count_stolb = 11
 
                 # if var == 'RPR':
                 #     exist_table['0'] = 1
@@ -695,7 +769,12 @@ class Worker_Excel_RPR(QObject):
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                        if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if str(list[col]) is None or str(list[col]) == 'None':
+                            list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
 
                 doc.save('output/0.docx')
@@ -718,7 +797,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -735,7 +814,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
                     stroka.append(sheet['I' + str(j)].value)  # Масса
@@ -747,20 +826,37 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(sheet['O' + str(j)].value)  # Радиус 90
                     stroka.append(sheet['P' + str(j)].value)  # Радиус 99
 
+                    # оборудование, вещество, состояние, площадь, масса, дрейф, миллион радиусов
+
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
-                # print(dict)
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[0] or 0, row[1] or 0, row[2] or 0, row[3]))
+                #print(dict)
                 rez = filtery(dict, oborudovanie, ov, pdo, 6, 5)
 
-                count_stolb = 10
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+                print("POP - NEXT")
+                for x in range(len(rez)):
+                    if var == 'RPR':
+                        rez[x].pop(5)
+                    rez[x].pop(3)
+                    rez[x].pop(2)
+                print("POP - OK")
+
+
+                #count_stolb = 10
 
                 if var == 'RPR':
                     doc = Document(
                         'Templates/Результаты расчета зон действия поражающих факторов при взрыве ТВС.docx')  ####################
+                    count_stolb = 9
                 elif var == 'OPO':
                     doc = Document(
                         'Templates/Максимальные зоны смертельного поражения при реализации аварий со взрывом ТВС.docx')  ####################
+                    count_stolb = 10
+
+
 
                 doc_table = doc.tables
                 style = doc.styles['Normal']
@@ -787,6 +883,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/1.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -804,7 +904,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -821,7 +921,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
                     stroka.append(sheet['G' + str(j)].value)  # Масса
@@ -873,6 +973,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/2.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -890,7 +994,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
@@ -903,15 +1007,17 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(state)
 
                     stroka.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)  # Площадь деф отв
 
-                    stroka.append(sheet['G' + str(j)].value)  # Масса
+                    stroka.append(sheet['H' + str(j)].value)  # РАСХОД
                     stroka.append(sheet['I' + str(j)].value)  # Радуис
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
+                dict.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
                 rez = chistka_3_ogn(dict)
 
                 count_stolb = 4
@@ -950,6 +1056,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/3.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -966,7 +1076,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -983,10 +1093,10 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
-                    stroka.append(sheet['G' + str(j)].value)  # Масса
+                    stroka.append(sheet['H' + str(j)].value)  # РАСХОД
                     stroka.append(sheet['I' + str(j)].value)  # Радиус 1
                     stroka.append(sheet['J' + str(j)].value)  # Радиус 10
                     stroka.append(sheet['K' + str(j)].value)  # Радиус 25
@@ -997,9 +1107,15 @@ class Worker_Excel_RPR(QObject):
 
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
                 rez = filtery_for_1(dict, oborudovanie, ov, pdo, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
 
                 count_stolb = 10
 
@@ -1035,6 +1151,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/4.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1051,7 +1171,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
@@ -1067,7 +1187,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)  # Площадь деф отв
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
@@ -1075,9 +1195,15 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(sheet['K' + str(j)].value)  # Радиус НКПВ
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
                 rez = filtery_for_1(dict, oborudovanie, ov, pdo, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
 
                 count_stolb = 4
 
@@ -1106,6 +1232,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/5.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1129,7 +1259,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(3, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -1149,6 +1279,7 @@ class Worker_Excel_RPR(QObject):
                     if not (ve in ov): ov.append(ve)
 
                     # s = sheet['H' + str(j)].value # Площадь деф отв
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
@@ -1159,10 +1290,16 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(sheet['N' + str(j)].value)  # Полуширина
                     dict.append(stroka)
 
-                dict.sort(key=lambda row: ((row[0]) or 0, row[2] or 0, row[3] or 0))
+                #dict.sort(key=lambda row: ((row[0]) or 0, row[2] or 0, row[3] or 0))
                 # print(dict)
                 # Максимальная масса, полуширина, дрейф
                 rez = filtery_for_3(dict, oborudovanie, ov, pdo, 4, 8, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
 
                 count_stolb = 7
 
@@ -1191,6 +1328,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/6.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1207,7 +1348,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -1224,7 +1365,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
@@ -1238,14 +1379,20 @@ class Worker_Excel_RPR(QObject):
                     stroka.append(sheet['P' + str(j)].value)  # Радиус 100
                     dict.append(stroka)
                 # print(dict)  # [Оборудование, Состояние, Вещество, ПДО, Масса, Дрейф, Радиус]
-                dict.sort(key=lambda row: ((row[2]) or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: ((row[2]) or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
 
                 rez = filtery(dict, oborudovanie, ov, pdo, 6, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+#LOOK
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
                 # print(rez)  # Оборудование, Состояние, Масса, Дрейф, Радиус
                 # rez = chistka_for_pozh_intens(rez)
-                for i in range(len(rez)):
-                    rez[i].pop(3)
+                for y in range(len(rez)):
+                    rez[y].pop(3)
                 count_stolb = 9
 
                 doc = Document(
@@ -1271,6 +1418,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/7.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1287,7 +1438,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
 
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
@@ -1304,31 +1455,40 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
                     stroka.append(sheet['I' + str(j)].value)  # Масса
                     stroka.append(sheet['J' + str(j)].value)  # Дрейф
-                    stroka.append(sheet['K' + str(j)].value)  # Радиус 2
-                    stroka.append(sheet['L' + str(j)].value)  # Радиус 3
-                    stroka.append(sheet['M' + str(j)].value)  # Радиус 5
-                    stroka.append(sheet['N' + str(j)].value)  # Радиус 12
-                    stroka.append(sheet['O' + str(j)].value)  # Радиус 14
-                    stroka.append(sheet['P' + str(j)].value)  # Радиус 28
-                    stroka.append(sheet['Q' + str(j)].value)  # Радиус 53
-                    stroka.append(sheet['R' + str(j)].value)  # Радиус 70
-                    stroka.append(sheet['S' + str(j)].value)  # Радиус 100
+                    stroka.append(sheet['K' + str(j)].value)  # Радиус 1
+                    stroka.append(sheet['L' + str(j)].value)  # Радиус 2
+                    stroka.append(sheet['M' + str(j)].value)  # Радиус 3
+                    stroka.append(sheet['N' + str(j)].value)  # Радиус 4
+                    stroka.append(sheet['O' + str(j)].value)  # Радиус 5
+                    stroka.append(sheet['P' + str(j)].value)  # Радиус 6
+                    stroka.append(sheet['Q' + str(j)].value)  # Радиус 7
+                    stroka.append(sheet['R' + str(j)].value)  # Радиус 14
+                    stroka.append(sheet['S' + str(j)].value)  # Радиус 28
+                    stroka.append(sheet['T' + str(j)].value)  # Радиус 70
+                    stroka.append(sheet['U' + str(j)].value)  # Радиус 100
                     dict.append(stroka)
-                print(dict)  # [Оборудование, Состояние, Вещество, ПДО, Масса, Дрейф, Радиус]
-                dict.sort(key=lambda row: ((row[2]) or 0, row[3] or 0, row[0] or 0))
+                #print(dict)  # [Оборудование, Состояние, Вещество, ПДО, Масса, Дрейф, Радиус]
+                #dict.sort(key=lambda row: ((row[2]) or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
 
                 rez = filtery(dict, oborudovanie, ov, pdo, 6, 5)
-                print(rez)  # Оборудование, Состояние, Масса, Дрейф, Радиус
-                for i in range(len(rez)):
-                    rez[i].pop(3)
-                count_stolb = 12
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
+
+                #print(rez)  # Оборудование, Состояние, Масса, Дрейф, Радиус
+                # for y in range(len(rez)):
+                #     rez[y].pop(3)
+                count_stolb = 15
                 # rez = chistka_for_pozh_intens(rez)
                 doc = Document(
                     'Templates/Результаты расчета зон действия поражающих факторов при дефлаграционном горении облака ТВС.docx')
@@ -1353,6 +1513,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/12.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1369,7 +1533,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
@@ -1385,7 +1549,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)  # Площадь деф отв
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
@@ -1401,10 +1565,16 @@ class Worker_Excel_RPR(QObject):
                     dict.append(stroka)
 
                 # print(dict) #[Оборудование, Состояние, Вещество, ПДО, Площадь пролива, дрейф, радиус1 ]
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
                 # print(dict)
 
                 rez = filtery(dict, oborudovanie, ov, pdo, 6, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
+
+                for x in range(len(rez)):
+                    rez[x].pop(3)
+                    rez[x].pop(2)
 
                 # print(rez) #[Оборудование, Состояние, Площадь пролива, дрейф, радиус1 ]
 
@@ -1435,6 +1605,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/8.docx')
 
@@ -1452,7 +1626,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
@@ -1508,6 +1682,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/9.docx')
 
@@ -1523,28 +1701,44 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
 
+                    # ve = str(sheet['E' + str(j)].value).strip()  # Вещество
+                    # ve = change_gas(ve)  # Вещество
+                    # stroka.append(ve)
+
                     ve = str(sheet['E' + str(j)].value).strip()  # Вещество
                     ve = change_gas(ve)  # Вещество
                     stroka.append(ve)
+
+                    s_def_otv = str(sheet['F' + str(j)].value)  # Площадь деф отв
+                    stroka.append(s_def_otv)
+
+                    sostoyan = str(sheet['D' + str(j)].value).strip()  # Cостояние
+                    state = change_state_with_old(s_def_otv, ve, sostoyan)  # Состояние
+                    stroka.append(state)
 
                     stroka.append(sheet['H' + str(j)].value)  # Расход
                     stroka.append(sheet['I' + str(j)].value)  # Радиус 10
                     stroka.append(sheet['J' + str(j)].value)  # Радиус 100
                     dict.append(stroka)
 
-                # print(dict) #[Оборудование, Вещество, Расход, радиус1 ]
-                dict.sort(key=lambda row: (row[1] or 0, row[0]))
+                # оборудование, вещество, площадь, состояние, расход, радиус
+                # print(dict) #[Оборудование, наименование, Расход, радиус1 ]
+                dict.sort(key=lambda row: (row[1] or 0,row[2] , row[0]))
                 # print(dict)
 
                 # print(dict)
+                for x in range(len(dict)):
+                    dict[x].pop(2)
+                    dict[x].pop(1)
 
                 rez = dict
                 rez = [x for x in rez if x != []]
+                #rez.sort(key=lambda row: (row[0] or 0, row[1]))
 
                 count_stolb = 5
 
@@ -1571,6 +1765,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/10.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))
@@ -1587,7 +1785,7 @@ class Worker_Excel_RPR(QObject):
                 ov = []
                 pdo = []
 
-                for j in range(4, all_rows):
+                for j in range(4, all_rows+1):
                     stroka = []
                     obor = str(sheet['C' + str(j)].value).strip()  # Оборудование
                     stroka.append(obor)
@@ -1603,7 +1801,7 @@ class Worker_Excel_RPR(QObject):
 
                     stroka.append(ve)
                     if not (ve in ov): ov.append(ve)
-
+                    s_def_otv = remove_exponent(s_def_otv)
                     stroka.append(s_def_otv)  # Площадь деф отв
                     if not (s_def_otv in pdo): pdo.append(s_def_otv)
 
@@ -1618,11 +1816,13 @@ class Worker_Excel_RPR(QObject):
                     dict.append(stroka)
 
                 # print(dict) #[Оборудование, Состояние, Вещество, ПДО, Расход, радиус1, ]
-                dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
+                #dict.sort(key=lambda row: (row[2] or 0, row[3] or 0, row[0] or 0))
 
                 # print(dict)
 
                 rez = filtery_for_vert_li_fakel(dict, oborudovanie, ov, pdo, 5)
+
+                rez.sort(key=lambda row: (row[0] or 0, row[2] or 0, row[3] or 0))
                 # print(rez)
                 rez = chistka_vert_fakel(rez)
 
@@ -1655,6 +1855,10 @@ class Worker_Excel_RPR(QObject):
                         else:
                             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                         if str(list[col]) is None or str(list[col]) == 'None': list[col] = ''
+                        if type(list[col]) == int or type(list[col]) == float:
+                            if list[col] == 0.0:
+                                list[col] = 0
+                            list[col] = str(list[col]).replace('.', ',')
                         run = paragraph.add_run(str(list[col]))
                 doc.save('output/11.docx')
                 print("--- %s seconds ---" % (time.time() - start_time))

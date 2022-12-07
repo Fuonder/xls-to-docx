@@ -1,0 +1,105 @@
+import math
+
+import docx
+import openpyxl
+from docx.shared import Pt
+from openpyxl import load_workbook
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import time
+
+def get_super(x):
+    normal = "0123456789+-=()"
+    super_s = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾"
+    res = x.maketrans("".join(normal), "".join(super_s))
+    return x.translate(res)
+
+def another_e(chislo):
+    power = int(str(chislo)[-2]+str(chislo)[-1])
+    value_new = float(str(chislo * pow(10, power))[:-2])
+    answer = str(round(value_new, 2))
+    p = get_super(str(10))
+    answer = answer + ' × 10' + p
+    return answer
+
+if __name__ == '__main__':
+    start_time = time.time()
+
+    wb = load_workbook('D:\PythonProject\Fedor_Night\Scens_1_метео 14.06.2022.xlsx')
+    sheet_name = (wb.get_sheet_names())
+    sheet = wb.get_sheet_by_name(sheet_name[0])
+
+    # B - Наименование оборудования
+    # D - опасное вещество
+    # Е - исход
+    # G - диаметр !!!!!!!!!!!!!!!!!!!!
+    # F - частота сценария
+    # H - масса Гф
+    # I - масса Жф
+
+    dict = []
+    stroka = []
+    all_rows = sheet.max_row
+    j = 0
+    for i in range(3,200):
+        stroka.append(sheet['B' + str(i)].value)
+        stroka.append(sheet['D' + str(i)].value)
+        stroka.append(sheet['E' + str(i)].value)
+
+        q = (sheet['G' + str(i)].value)
+        if q == '-':
+            stroka.append(0)
+        else:
+            if q is None:
+                stroka.append(0)
+            else:
+                q = (math.sqrt(float(q) * 4 / float(math.pi)) * 1000)
+                if int(q) == 12 or int(q) == 13:
+                    stroka.append(12.5)
+                else: stroka.append(int(q))
+
+
+        with_10_ =  another_e(sheet['F' + str(i)].value)
+        stroka.append(with_10_)
+
+        stroka.append(sheet['H' + str(i)].value)
+        stroka.append(sheet['I' + str(i)].value)
+
+        dict.append(stroka)
+        stroka = []
+
+    (dict.sort(key = lambda row: (row[1],row[2],row[3],row[0])))
+    #dict = sort_dict(dict)
+
+    doc = Document('Scene.docx')
+    doc_table = doc.tables
+
+    style = doc.styles['Normal']
+    style.font.name = 'Times New Roman'
+    style.font.size = Pt(10)
+    paragraph_format = doc.styles['Normal'].paragraph_format
+    paragraph_format.line_spacing = Pt(12) ###################
+    paragraph_format.space_after = (0)################
+
+    for k in range(2,150):
+        list = dict[k]
+        row = doc_table[0].add_row().cells  # олучаем все ячейки ряда
+        for col in range(7):
+            cell = row[col]
+            paragraph = cell.paragraphs[0]
+            paragraph.style = doc.styles['Normal']
+            if col == 3:
+                if (list[col]) == 0: list[col] = 'Полное разрущение'
+                else:
+                    list[col] = str(list[col]).replace('.', ',')
+            if col == 4: list[col] = str(list[col]).replace('.', ',')
+            if col == 0: paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            else: paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            run = paragraph.add_run(str(list[col]))
+
+    doc.save('Scene1.docx')
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/

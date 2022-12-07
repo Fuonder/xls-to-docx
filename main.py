@@ -1,5 +1,7 @@
 import os.path
 import time
+from docxcompose.composer import Composer
+import docxcompose
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QGridLayout, QMessageBox, QFontDialog
 from PyQt6.QtWidgets import (
@@ -116,9 +118,9 @@ class MainWindow(QMainWindow):
         self.progressbar2.adjustSize()
 
         self.input1 = QLineEdit("")
-        self.input1.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
+        self.input1.setPlaceholderText("Введите путь до файла: C:\\user\\file.xlsx")
         self.input2 = QLineEdit("")
-        self.input2.setPlaceholderText("Введите путь до файла: C:\\user\\file.docx")
+        self.input2.setPlaceholderText("Введите путь до файла: C:\\user\\file.xlsx")
 
         layout = QGridLayout()
 
@@ -374,7 +376,6 @@ class MainWindow(QMainWindow):
         cur_value += int(msg)
         print("CUR + MSG = " + str(cur_value))
         if cur_value > 100:
-            print("ZALYPA")
             self.progressbar2.setValue(100)
         else:
             self.progressbar2.setValue(cur_value)

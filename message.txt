@@ -1,0 +1,165 @@
+import math
+import time
+
+import docx
+import openpyxl
+from docx import Document
+from docx.enum.section import WD_SECTION
+from docx.enum.style import WD_STYLE_TYPE
+from docx.enum.table import WD_ALIGN_VERTICAL
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Pt
+from openpyxl import load_workbook
+
+def change_gas(cur_list):
+    cur_str = str(cur_list)
+    pos = cur_str.find(" (")
+    if pos != -1:
+        new_str = cur_str[:pos]
+    else:
+        new_str = cur_list
+    return new_str
+
+def get_super(x):
+    normal = "0123456789+-=()"
+    super_s = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾"
+    res = x.maketrans("".join(normal), "".join(super_s))
+    return x.translate(res)
+
+def another_e(chislo):
+    power = int(str(chislo)[-2]+str(chislo)[-1])
+    value_new = float(str(chislo * pow(10, power))[:-2])
+    answer = str(round(value_new, 2))
+    p = get_super(str(10))
+    answer = answer + ' × 10' + p
+    return answer
+
+# def sort_dict(dict):
+#     print((dict.keys()))
+#     dictionary_keys = list(dict.keys())
+#     sorted_dict = {dictionary_keys[x]: sorted(
+#         dict.values())[x] for x in range(len(dictionary_keys))}
+#     return sorted_dict
+
+def filtery(sort_dict, obor, ov, pdo, list_):
+    #Структура: [0]Оборудование, [1]Состояние, [2]Опасное вещество,
+    # [3]Площадь отверстия, [4]Масса, [5]Дрейф, [6]1,[7]10,[8]25,[9]50,[10]90,[11]99
+    rez = []
+    #1.Выбираем ооборудование
+    #2.Выбираем опасное вещество
+
+    #keys = sort_dict.keys()
+    for o in range(len(obor)):
+        for v in range(len(ov)):
+            for p in range(len(pdo)):
+                a = []
+                max = 0
+                max_dr = 0
+                b = []
+                max_str = []
+                for i in range(len(sort_dict)):
+                    if sort_dict[i][0] == obor[o] and sort_dict[i][2] == ov[v] and sort_dict[i][3] == pdo[p]:
+                        a.append(sort_dict[i])
+                    if i == len(sort_dict)-1:
+                        for j in range(len(a)):
+                            if a[j][6] > max:
+                                b.clear()
+                                b.append(a[j])
+                                max = a[j][6]
+                            elif a[j][6] == max:
+                                b.append(a[j])
+                        for j in range(len(b)):
+                            if b[j][5] >= max_dr:
+                                max_str = (b[j])
+                                max_dr = b[j][5]
+                        if max_str is not []:
+                            rez.append(max_str)
+    rez = [x for x in rez if x != []]
+    for i in range (len(rez)):
+        if list_ == 6: rez[i].pop(5)
+        rez[i].pop(3)
+        rez[i].pop(2)
+    return rez
+
+
+if __name__ == '__main__':
+    start_time = time.time()
+    wb = openpyxl.load_workbook('D:\PythonProject\Fedor_Petuh_Na_Zone\ТВ РПР (зоны, нов).xlsx')
+    sheet_name = (wb.get_sheet_names())
+    doc = Document('Zona_RPR.docx')
+    doc_table = doc.tables
+
+    for i in range(len(sheet_name)):
+        if i == 5 or i == 6: #2ой лист
+            dict = []
+            l = 0
+            print(sheet_name[i])
+            sheet = wb.get_sheet_by_name(sheet_name[i])
+            all_rows = sheet.max_row
+            oborudovanie = []
+            ov = []
+            pdo = []
+
+            for j in range(4, 200):
+                stroka = []
+
+                obor = str(sheet['C' + str(j)].value).strip() # Оборудование
+                stroka.append(obor)
+                if not (obor in oborudovanie): oborudovanie.append(obor)
+
+                stroka.append(str(sheet['D' + str(j)].value).strip())  # Состояние
+
+                ve = str(sheet['E' + str(j)].value).strip()# Вещество
+                ve = change_gas(ve)
+                stroka.append(ve)
+                if not (ve in ov): ov.append(ve)
+
+                s = sheet['H' + str(j)].value # Площадь деф отв
+                stroka.append(s)
+                if not (s in pdo): pdo.append(s)
+
+                stroka.append(sheet['I' + str(j)].value)  # Масса
+                stroka.append(sheet['J' + str(j)].value)  # Дрейф
+                stroka.append(sheet['K' + str(j)].value)  # Радиус 1
+                stroka.append(sheet['L' + str(j)].value)  # Радиус 10
+                stroka.append(sheet['M' + str(j)].value)  # Радиус 25
+                stroka.append(sheet['N' + str(j)].value)  # Радиус 50
+                stroka.append(sheet['O' + str(j)].value)  # Радиус 90
+                stroka.append(sheet['P' + str(j)].value)  # Радиус 99
+                if i == 6:
+                    stroka.append(sheet['Q' + str(j)].value)  # Радиус 100
+                dict.append(stroka)
+                l = l + 1
+            print(dict)
+            #sotr_all = sort_dict(dict)
+
+            (dict.sort(key = lambda row: (row[2],row[3],row[0])))
+            print(dict)
+            rez = filtery(dict, oborudovanie, ov, pdo, i)
+
+
+            style = doc.styles['Normal']
+            style.font.name = 'Times New Roman'
+            style.font.size = Pt(10)
+            paragraph_format = doc.styles['Normal'].paragraph_format
+            paragraph_format.line_spacing = Pt(12)
+            paragraph_format.space_after = (0)
+            for k in range(len(rez)):
+                list = rez[k]
+                if i == 5: row = doc_table[0].add_row().cells  # олучаем все ячейки ряда
+                if i == 6: row = doc_table[1].add_row().cells  # олучаем все ячейки ряда
+                for col in range(10):
+                    cell = row[col]
+                    paragraph = cell.paragraphs[0]
+                    paragraph.style = doc.styles['Normal']
+                    # if col == 3:
+                    #     if (list[col]) == 0: list[col] = 'Полное разрущение'
+                    #     else:
+                    #         list[col] = str(list[col]).replace('.', ',')
+                    # if col == 4: list[col] = str(list[col]).replace('.', ',')
+                    if col == 0: paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                    else: paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = paragraph.add_run(str(list[col]))
+            doc.save('Zona1.docx')
+            print("--- %s seconds ---" % (time.time() - start_time))
+
